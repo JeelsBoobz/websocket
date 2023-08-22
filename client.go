@@ -192,16 +192,18 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 	}
 
 	httpMethod := http.MethodGet
-	pathUnescape , _ := url.QueryUnescape(u.Path)
-	pathTrimmed := strings.TrimPrefix(pathUnescape, "/")
-	pathReplace := strings.Replace(pathTrimmed, " ", ":", 1)
-	pathSplited := strings.Split(pathReplace, ":")
-	pathLen := len(pathSplited)
-	if(pathLen == 2) {
-		u.Opaque = pathTrimmed
-	} else if(pathLen == 3) {
-		httpMethod = pathSplited[0]
-		u.Opaque = pathSplited[1] + ":" + pathSplited[2]
+	if strings.Contains(u.Path, "://") {
+		pathUnescape , _ := url.QueryUnescape(u.Path)
+		pathTrimmed := strings.TrimPrefix(pathUnescape, "/")
+		pathReplace := strings.Replace(pathTrimmed, " ", "|", 1)
+		pathSplited := strings.Split(pathReplace, "|")
+		pathLen := len(pathSplited)
+		if(pathLen == 1) {
+			u.Opaque = pathTrimmed
+		} else if(pathLen == 2) {
+			httpMethod = pathSplited[0]
+			u.Opaque = pathSplited[1]
+		}
 	}
 
 	req := &http.Request{
